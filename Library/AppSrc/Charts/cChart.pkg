@@ -1,0 +1,133 @@
+﻿Use cWebBaseControl.pkg
+
+Define clHighCharts for "HighCharts"
+Define clChartjs for "Chartjs"
+Define clSyncfusion for "Syncfusion"
+
+Struct tPointData
+    Number y
+    String sTooltip
+End_Struct
+
+Struct tChartData
+    String sLabel
+    String sSeriesColor
+    tPointData[] dataPoints
+    //Optionals
+    String sType
+    Number nLineThickness
+End_Struct
+
+Class cChart is a cWebBaseControl
+    
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        { WebProperty=Client } 
+        { Category="Server Events" }
+        Property Boolean pbServerOnClick True   // Set to true to trigger server OnClick event
+        
+        //Client properties
+        
+        //Title displayed above the chart
+        { WebProperty=Client }
+        Property String psTitle
+        
+        //Text displayed under the title in a different font size and type
+        { WebProperty=Client }
+        Property String psSubtitle
+        
+        //The type of the chart that should be displayed
+        { WebProperty=Client }
+        Property String psChartType "line"
+        
+        //Chart background color
+        { WebProperty=Client }
+        Property String psChartBackgroundColor ""
+        
+        //The label to tell the reader what the y axis represents
+        { WebProperty=Client }
+        Property String psYAxisLabel
+        
+        //The labels for the x axis points
+        { WebProperty=Client }
+        Property String psXAxisLabels
+        
+        //Set the name of the charting library is used to render the chart with a specific library
+        { WebProperty=Client }
+        Property String psChartingLibrary clChartjs
+        
+        //Alignment of the legend relative to the chart
+        { WebProperty=Client }
+        Property String psLegendAlignment "right"
+        
+        //Enable or disable legend
+        { WebProperty=Client }
+        Property Boolean pbLegendEnabled True
+        
+        //Enable or disable zooming / panning in a chart
+        { WebProperty=Client }
+        Property Boolean pbZoomable True
+
+        //Js class
+        Set psJSClass to "df.ChartControl"
+    End_Procedure
+    
+    //Initially creates the chart
+    Procedure CreateChart tChartData[] chartData
+        String[] sParams
+        
+        Send ClientAction "createChart" sParams chartData
+    End_Procedure
+    
+    //Allows for modification of existing data
+    Procedure ChangeDataPoint String sDatasetName Integer iIndex Number nNewValue
+        String[] sParams
+        Move sDatasetName to sParams[0]
+        Move iIndex to sParams[1]
+        Move nNewValue to sParams[2]
+        
+        Send ClientAction "changeDataPoint" sParams
+    End_Procedure
+    
+    //Allows for new data series to be added to the chart
+    Procedure AddNewChartSeries tChartData chartData
+        String[] sParams
+        
+        Send ClientAction "addNewSeries" sParams chartData
+    End_Procedure
+    
+    //Allows for new datapoints to be added to existing series
+    Procedure AddNewDataPoint String sDatasetName String sXAxisLabel tPointData data
+        String[] sParams
+        Move sDatasetName to sParams[0]
+        Move sXAxisLabel to sParams[1]
+        
+        Send ClientAction "addNewDataPoint" sParams data
+    End_Procedure
+    
+    //Remove a dataset from the chart
+    Procedure RemoveDataset String sDatasetName
+        String[] sParams
+        Move sDatasetName to sParams[0]
+        
+        Send ClientAction "removeDataset" sParams
+    End_Procedure
+    
+    //Updates the chart, should be called when properties are changed
+    Procedure UpdateChart        
+        Send ClientAction "updateChart"
+    End_Procedure
+    
+    { MethodType=Event }
+    Procedure OnClick String sLabel Number nValue String sTooltip Integer iIndex String sDatasetName
+        //Augment implementation in program
+    End_Procedure
+    
+    Procedure End_Construct_Object
+        Forward Send End_Construct_Object
+        
+        WebPublishProcedure OnClick
+    End_Procedure
+
+End_Class

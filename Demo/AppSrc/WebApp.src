@@ -1,0 +1,242 @@
+﻿Use AllWebAppClasses.pkg
+Use cWebMenuItemLoadView.pkg
+
+Object oApplication is a cApplication
+
+    Object oConnection is a cConnection
+        Use LoginEncryption.pkg
+    End_Object
+
+End_Object
+
+Object oWebApp is a cWebApp
+    Set psTheme to "Df_Flat_Desktop"
+    Set psApplicationTitle to "Charting library sample"
+    Set peApplicationStateMode to asmHistoryAndUrls
+    
+
+
+// this will do a manual login
+//    Procedure OnLoad
+//        Boolean bOk
+//        Get UserLogin of ghoWebSessionManager "john" "John" to bOk
+//    End_Procedure
+
+    Object oCommandbar is a cWebCommandBar
+
+        Object oMenuBar is a cWebMenuBar
+            Object oViewMenu is a cWebMenuItem
+                Set psCaption to "Views"
+
+                Object oDemoChartingLibrariesItem1 is a cWebMenuItemLoadView
+                    Set psCaption to "DemoChartingLibraries"
+                    Set psLoadViewOnClick to "oDemoChartingLibraries"
+                End_Object
+
+            End_Object
+
+            Object oThemesMenu is a cWebMenuItem
+                Set psCaption to "Themes"
+
+                Object oModernSky is a cWebMenuItemCheckbox
+                    Set psCaption to "Modern Sky"
+
+                    Procedure OnClick
+                        //  Change the theme at runtime
+                        WebSet psTheme of oWebApp to "Df_Modern_Sky"
+
+                        //  Update menu
+                        Send UpdateSelectedTheme
+                        Send CollapseAll
+                    End_Procedure
+                End_Object
+
+                Object oWindowsLike is a cWebMenuItemCheckbox
+                    Set psCaption to "Windows Like"
+
+                    Procedure OnClick
+                        //  Change the theme at runtime
+                        WebSet psTheme of oWebApp to "Df_Windows_Like"
+
+                        //  Update menu
+                        Send UpdateSelectedTheme
+                        Send CollapseAll
+                    End_Procedure
+                End_Object
+
+                Object oHighContrast is a cWebMenuItemCheckbox
+                    Set psCaption to "High Contrast"
+
+                    Procedure OnClick
+                        //  Change the theme at runtime
+                        WebSet psTheme of oWebApp to "Df_High_Contrast"
+
+                        //  Update menu
+                        Send UpdateSelectedTheme
+                        Send CollapseAll
+                    End_Procedure
+                End_Object
+
+                Object oWebCremeItem is a cWebMenuItemCheckbox
+                    Set psCaption to "Web Creme"
+
+                    Procedure OnClick
+                        //   Change the theme at runtime
+                        WebSet psTheme of oWebApp to "Df_Web_Creme"
+
+                        //  Update menu
+                        Send UpdateSelectedTheme
+                        Send CollapseAll
+                    End_Procedure
+                End_Object
+
+                Object oFlatTouchItem is a cWebMenuItemCheckbox
+                    Set psCaption to "Flat Touch"
+
+                    Procedure OnClick
+                        //   Change the theme at runtime
+                        WebSet psTheme of oWebApp to "Df_Flat_Touch"
+
+                        //  Update menu
+                        Send UpdateSelectedTheme
+                        Send CollapseAll
+                    End_Procedure
+                End_Object
+
+                Object oFlatDesktopItem is a cWebMenuItemCheckbox
+                    Set psCaption to "Flat Desktop"
+
+                    Procedure OnClick
+                        //   Change the theme at runtime
+                        WebSet psTheme of oWebApp to "Df_Flat_Desktop"
+
+                        //  Update menu
+                        Send UpdateSelectedTheme
+                        Send CollapseAll
+                    End_Procedure
+                End_Object
+
+                Object oMaterialItem is a cWebMenuItemCheckbox
+                    Set psCaption to "Material"
+
+                    Procedure OnClick
+                        // Change the theme at runtime
+                        WebSet psTheme of oWebApp to "Df_Material"
+
+                        // Update menu
+                        Send UpdateSelectedTheme
+                        Send CollapseAll
+                    End_Procedure
+                End_Object
+
+                Procedure UpdateSelectedTheme
+                    String sTheme
+
+                    //  Determine theme
+                    WebGet psTheme of oWebApp to sTheme
+                    
+                    //  Store the selected theme in the session property
+                    WebSet psCustomTheme of oWebApp to sTheme
+
+                    //  Set enabled state
+                    WebSet pbChecked of (oModernSky)        to (sTheme = "Df_Modern_Sky")
+                    WebSet pbChecked of (oWindowsLike)      to (sTheme = "Df_Windows_Like")
+                    WebSet pbChecked of (oHighContrast)     to (sTheme = "Df_High_Contrast")
+                    WebSet pbChecked of (oWebCremeItem)     to (sTheme = "Df_Web_Creme")
+                    WebSet pbChecked of (oFlatTouchItem)    to (sTheme = "Df_Flat_Touch")
+                    WebSet pbChecked of (oFlatDesktopItem)  to (sTheme = "Df_Flat_Desktop")
+                    WebSet pbChecked of (oMaterialItem)     to (sTheme = "Df_Material")
+                End_Procedure
+
+                Procedure OnLoad
+                    Send UpdateSelectedTheme
+                End_Procedure
+            End_Object
+
+        End_Object
+
+    End_Object
+
+    Use SessionManager.wo
+    Use WebResourceManager.wo
+    Use LoginDialog.wo
+    Use DemoChartingLibraries.wo
+   
+    
+    
+    // This session web property stores the currently selected theme for the sample. Storing this
+    // in a session property and setting the psTheme in OnLoad makes it remember the selected theme
+    // for the entire session. Note that this property is set fro
+    { WebProperty=ServerSession }
+    Property String psCustomTheme ""
+
+    Set peLoginMode to lmLoginNone
+    
+    Procedure OnLoad
+        String sCustomTheme
+        
+        Forward Send OnLoad
+        
+        WebGet psCustomTheme to sCustomTheme
+        If (sCustomTheme <> "") Begin
+            Set psTheme to sCustomTheme
+        End
+    End_Procedure
+
+    // Generates a string of 40 random characters between ASCII 33 & ASCII 126
+    // This should produce a unique string suitable for a 16 character encryption key.
+    // Excludes the ;"' characters
+    // Used by WebApps to give the psEncryptPassword property a unique value.
+    Function GenerateEncryptString Returns String
+        Integer i iASCII
+        String sChar sKey
+
+        For i from 0 to 39
+            Move (Random(93)) to iASCII
+            Move (iASCII + 34) to iASCII
+
+            If (iASCII = 34 or iASCII = 39 or iASCII = 59) Begin
+                Increment iASCII
+            End
+
+            Move (Character(iASCII)) to sChar
+            Move (sKey + sChar) to sKey
+        Loop
+
+        Function_Return sKey
+    End_Function
+
+    Procedure InitPassword
+        // Note to the developer: For security purposes each installation of the WebOrder workspace must
+        // contain a unique value for the framework's encryption key. This value is stored in the cWebApp
+        // object's psEncryptPassword property.
+        //
+        // To ensure each running installation of WebOrder is different we have modified the Web App's OnLoad
+        // event to generate a random psEncryptPassword value the first time that the web app is run. This
+        // value is then used and is stored in the OrdSys system table so that it does not get re-generated
+        // in subsequent instances of this web application.
+        //
+        // Since WebOrder is installed and run automatically when you install DataFlex we are required to
+        // ensure that the encryption password cannot be guessed. Normally you would not need, or want,
+        // to Use this technique in your own web applications. Instead you would manually set psEncryptPassword
+        // to a trusted, unique value for each web application that you deploy.
+
+        // Test if an encryption password has already been generated.
+        If (Trim(OrderSystem.EncryptPassword) = "") Begin
+            Reread OrderSystem
+            // Just in case another instance wrote to OrdSys.EncryptPassword in the millisecond
+            // between the above two lines of code we will test this value again
+            If (Trim(OrderSystem.EncryptPassword) = "") Begin
+                Get GenerateEncryptString to OrderSystem.EncryptPassword
+                SaveRecord OrderSystem
+            End
+            Unlock
+        End
+
+        Set psEncryptPassword to (Trim(OrderSystem.EncryptPassword))
+    End_Procedure
+
+    Send InitPassword
+End_Object
+
+Send StartWebApp of oWebApp

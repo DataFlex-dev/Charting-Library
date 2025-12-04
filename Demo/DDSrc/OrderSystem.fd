@@ -1,0 +1,6 @@
+#REPLACE FILE20 OrderSystem
+#REPLACE OrderSystem.Recnum |FN20,0
+#REPLACE OrderSystem.Order_Number |FN20,1
+#REPLACE OrderSystem.Cust_Number |FN20,2
+#REPLACE OrderSystem.Vendor_Number |FN20,3
+#REPLACE OrderSystem.EncryptPassword |FS20,4

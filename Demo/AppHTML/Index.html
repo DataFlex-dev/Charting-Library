@@ -1,0 +1,50 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    
+    <title>Charting library sample</title>
+    
+    <link rel="shortcut icon" href="favicon.ico" sizes="48x48" />
+    
+    <!-- DataFlex Engine -->
+    <script>
+        //  Uncomment the following line to optimize the initialization (make sure that the right theme is set)
+        var sDfPreloadTheme = "Df_Flat_Desktop";
+    </script>
+    
+    <script src="DfEngine/df-min.js"></script>
+    
+    <!-- DataFlex Custom Controls (do not remove this line, used for automatic insertion) -->
+    <script src="Charts/ChartControl.js"></script>
+
+    <!-- Chartjs sources -->
+    <script src="Charts/Chartjs/chart.min.js"></script>
+    <script type="module" src="Charts/Chartjs/ChartjsRenderer.js"></script>
+
+    <!-- Highcharts sources -->
+    <script type="module" src="Charts/HighCharts/HighChartsRenderer.js"></script>
+
+    <!-- Syncfusion sources -->
+    <script type="module" src="Charts/Syncfusion/SyncfusionRenderer.js"></script>
+    
+    <!-- Initialization of the WebApp -->
+    <script>
+        var oWebApp = new df.WebApp("WebServiceDispatcher.wso");
+        
+        oWebApp.displayApp("#viewport");
+    </script>
+    
+    <style>
+        html, body{
+        height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="viewport" style="width: 100%; height: 100%;">
+        
+    </div>
+</body>
+</html>

@@ -1,0 +1,975 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg 
+Use cWebCombo.pkg
+Use cWebTimer.pkg
+Use cWebTabPage.pkg
+Use cWebTabContainer.pkg
+Use cSalesPersonDataDictionary.dd
+Use cVendorDataDictionary.dd
+Use cOrderDetailDataDictionary.dd
+Use cOrderHeaderDataDictionary.dd
+Use cCustomerDataDictionary.dd
+Use cInventoryDataDictionary.dd
+
+Use Charts\cChart.pkg
+
+Object oDemoChartingLibraries is a cWebView
+    Set psCaption to "DemoChartingLibraries"
+    
+    { WebProperty = Server }
+    Property String[] pasChartjsTypes
+    { WebProperty = Server }
+    Property String[] pasHighChartsTypes
+    { WebProperty = Server }
+    Property String[] pasSyncfusionTypes
+    
+    Delegate Set phoDefaultView to Self      // Automatically load this view when starting the webapp
+    
+    Object oWebMainPanel is a cWebPanel
+        Set piColumnCount to 8
+        
+        Object oTabContainer is a cWebTabContainer
+            Set piRowIndex to 1
+            Set piColumnIndex to 0
+            Set piColumnSpan to 8
+            Set pbFillHeight to True
+            
+            Object oPurchasesPerDate is a cWebTabPage
+                Set psCaption to "Purchases per date"
+                Set piColumnCount to 11
+
+                Object oSalesPerson_DD is a cSalesPersonDataDictionary
+                End_Object
+                
+                Object oCustomer_DD is a cCustomerDataDictionary
+                End_Object
+
+                Object oOrderHeader_DD is a cOrderHeaderDataDictionary
+                    Set DDO_Server to oSalesPerson_DD
+                    Set Constrain_file to Customer.File_number
+                    Set DDO_Server to oCustomer_DD
+                End_Object
+
+                Set Main_DD to oCustomer_DD
+                Set Server to oCustomer_DD              
+        
+                Object oCompanyNameCombo is a cWebCombo
+                    Set psLabel to "Company name"
+                    Set psValue to "Access Miles"
+                    Set pbServerOnChange to True
+                    Set piColumnSpan to 2
+                    
+                    //Fill the webcombo with the customers
+                    Procedure OnFill
+                        Forward Send OnFill
+                        
+                        Send Clear of oCustomer_DD
+                        
+                        Send Find of oCustomer_DD GE 2
+                        
+                        While (Found)
+                            If (Customer.Purchases <> 0) Begin
+                                Send AddComboItem (Trim(Customer.Name)) Customer.Name
+                            End
+                            Send Find of oCustomer_DD NEXT_RECORD 2
+                        Loop
+                    End_Procedure
+                    
+                    Procedure OnChange String sNewValue String sOldValue
+                        Send LoadChartData
+                    End_Procedure
+                End_Object
+                
+                //WebCombo to allow the user to set the chart type
+                Object oChartTypeCombo is a cWebCombo
+                    Set psLabel to "Chart type"
+                    Set psValue to "line"
+                    Set pbServerOnChange to True
+                    Set piColumnSpan to 2                   
+        
+                    Procedure OnFill
+                        String[] asTypes
+                        String sChartLib
+                        Integer iIndex
+                        
+                        WebGet psValue of oChartLibraryCombo to sChartLib
+                        Get ChartTypes sChartLib to asTypes
+                        
+                        For iIndex from 0 to (SizeOfArray(asTypes)-1)
+                            Send AddComboItem asTypes[iIndex] asTypes[iIndex]
+                        Loop
+                        
+                    End_Procedure
+                    
+                    Procedure OnChange String sNewValue String sOldValue
+                        WebSet psChartType of oPurchaseHistoryChart to sNewValue
+                        Send UpdateChart of oPurchaseHistoryChart
+                    End_Procedure
+                End_Object
+                
+                //WebCombo to allow the user to set the charting library
+                Object oChartLibraryCombo is a cWebCombo
+                    Set psLabel to "Chart library"
+                    Set psValue to "Chartjs"
+                    Set pbServerOnChange to True
+                    Set piColumnSpan to 2
+        
+                    Procedure OnFill
+                        Send AddComboItem "Chartjs" clChartjs
+                        Send AddComboItem "HighCharts" clHighCharts
+                        Send AddComboItem "Syncfusion" clSyncfusion
+                    End_Procedure
+                    
+                    Procedure OnChange String sNewValue String sOldValue
+                        WebSet psChartingLibrary of oPurchaseHistoryChart to sNewValue
+                        Send Refill of oChartTypeCombo
+                    End_Procedure
+                End_Object
+
+                //Chartjs chart
+                Object oPurchaseHistoryChart is a cChart
+                    Set psTitle to "Purchase history"
+                    Set psSubtitle to "Visualization of the purchase history of a company"
+                    Set psChartBackgroundColor to "white"
+                    Set psYAxisLabel to "Order total"
+                    //Left or right
+                    Set psLegendAlignment to "right"
+                    Set piColumnSpan to 10
+                    Set pbFillHeight to True
+                    
+                    Procedure OnClick String sLabel Number nValue String sTooltip Integer iIndex String sDatasetName
+                        Send ChangeDataPoint sDatasetName iIndex (Random(20000))
+                    End_Procedure
+                    
+                    //Set some basic values when the chart is loaded
+                    Procedure OnLoad
+                        String sChartingLibrary sChartType
+                    
+                        //Get the charting library
+                        WebGet psValue of oChartLibraryCombo to sChartingLibrary
+                        WebSet psChartingLibrary of oPurchaseHistoryChart to sChartingLibrary
+                        
+                        //Get the chart type
+                        WebGet psValue of oChartTypeCombo to sChartType
+                        WebSet psChartType of oPurchaseHistoryChart to sChartType
+                        
+                        Send LoadChartData
+                    End_Procedure
+                End_Object
+                
+                //Load all the purchase history data that is relevant to the chart
+                Procedure LoadChartData
+                    String sXAxisLabels sCustomerName
+                    tChartData[] chartData
+                    Integer iRandomRed iRandomGreen iRandomBlue iDataIndex
+                    
+                    //Define random color for the dataset
+                    Move (Random(255)) to iRandomRed
+                    Move (Random(255)) to iRandomBlue
+                    Move (Random(255)) to iRandomGreen
+                    
+                    //Set the thickness of the line
+                    Move 1 to chartData[0].nLineThickness
+                    
+                    WebGet psValue of oCompanyNameCombo to sCustomerName
+                    Move sCustomerName to chartData[0].sLabel
+                    Move ("rgba(" + String(iRandomRed) + "," + String(iRandomGreen) + "," + String(iRandomBlue) + ",0.5)") to chartData[0].sSeriesColor
+                    
+                    Send Clear of oCustomer_DD
+                    
+                    Move sCustomerName to Customer.Name
+                    Send Find of oCustomer_DD GE 2
+                
+                    Send Find of oOrderHeader_DD FIRST_RECORD 3
+                   
+                    While (Found)
+                        
+                        //Visualize the order total along with the salesperson tied to the order
+                        Move (SFormat("Order processed by: %1", Trim(SalesPerson.Name))) to chartData[0].dataPoints[iDataIndex].sTooltip
+                        Move OrderHeader.Order_Total to chartData[0].dataPoints[iDataIndex].y
+                        
+                        //Only start the string with a comma if its not the first value
+                        If (SizeOfString(sXAxisLabels)=0) Begin
+                            Move (Trim(OrderHeader.Order_Date)) to sXAxisLabels
+                        End
+                        Else Begin
+                            Append sXAxisLabels (", " +(Trim(OrderHeader.Order_Date)))
+                        End
+                        
+                        Increment iDataIndex
+                        Send Find of oOrderHeader_DD NEXT_RECORD 3
+                    Loop
+                    
+                    //Set the x axis values
+                    WebSet psXAxisLabels of oPurchaseHistoryChart to sXAxisLabels
+                    
+                    //Create the chart
+                    Send CreateChart of oPurchaseHistoryChart chartData
+                End_Procedure
+            End_Object
+            
+            //Tab page to display the money earned per sales person
+            Object oTotalSalesTabPage is a cWebTabPage
+                Set piColumnCount to 11
+                Set psCaption to "Money earned per sales person"
+                Set pbServerOnShow to True
+                
+                Object oSalesPerson_DD is a cSalesPersonDataDictionary
+                End_Object
+
+                Object oCustomer_DD is a cCustomerDataDictionary
+                End_Object
+
+                Object oOrderHeader_DD is a cOrderHeaderDataDictionary
+                    Set DDO_Server to oSalesPerson_DD
+                    Set DDO_Server to oCustomer_DD
+                End_Object
+
+                Set Main_DD to oOrderHeader_DD
+                Set Server to oOrderHeader_DD
+
+                //Combo that allows the chart type to be set
+                Object oSalesChartTypeCombo is a cWebCombo
+                    Set psLabel to "Chart type"
+                    Set psValue to "bar"
+                    Set pbServerOnChange to True
+                    Set piColumnSpan to 2
+        
+                    Procedure OnFill
+                        String[] asTypes
+                        String sChartLib
+                        Integer iIndex
+                        
+                        WebGet psValue of oSalesChartLibraryCombo to sChartLib
+                        Get ChartTypes sChartLib to asTypes
+                        
+                        For iIndex from 0 to (SizeOfArray(asTypes)-1)
+                            Send AddComboItem asTypes[iIndex] asTypes[iIndex]
+                        Loop
+                        
+                    End_Procedure
+                    
+                    Procedure OnChange String sNewValue String sOldValue
+                        WebSet psChartType of oSalesPersonChart to sNewValue
+                        Send UpdateChart of oSalesPersonChart
+                    End_Procedure
+                End_Object
+
+                //Combo that allows the charting library to be set
+                Object oSalesChartLibraryCombo is a cWebCombo
+                    Set psLabel to "Chart library"
+                    Set psValue to "Chartjs"
+                    Set pbServerOnChange to True
+                    Set piColumnSpan to 2
+        
+                    Procedure OnFill
+                        Send AddComboItem "Chartjs" clChartjs
+                        Send AddComboItem "HighCharts" clHighCharts
+                        Send AddComboItem "Syncfusion" clSyncfusion
+                    End_Procedure
+                    
+                    Procedure OnChange String sNewValue String sOldValue
+                        WebSet psChartingLibrary of oSalesPersonChart to sNewValue
+                        Send Refill of oSalesChartTypeCombo
+                    End_Procedure
+                End_Object
+                
+                //Chart object that shows how much money each sales person makes
+                Object oSalesPersonChart is a cChart
+                    Set psTitle to "Total sales per sales person"
+                    Set psSubtitle to "This chart shows how much money each sales person has earned"
+                    Set psChartBackgroundColor to "white"
+                    Set psYAxisLabel to "Total money through sales"
+                    //Left or right
+                    Set psLegendAlignment to "right"
+                    Set piColumnSpan to 10
+                    Set pbFillHeight to True
+                    
+                    Procedure OnLoad
+                        String sChartingLibrary sChartType
+                        
+                        //Get the charting library
+                        WebGet psValue of oSalesChartLibraryCombo to sChartingLibrary
+                        WebSet psChartingLibrary of oSalesPersonChart to sChartingLibrary
+                        
+                        //Get the chart type
+                        WebGet psValue of oSalesChartTypeCombo to sChartType
+                        WebSet psChartType of oSalesPersonChart to sChartType
+                        
+                        Send LoadSalesData
+                    End_Procedure
+                    
+                    Procedure OnClick String sLabel Number nValue String sTooltip Integer iIndex String sDatasetName
+                        If (not(sDatasetName = "Average")) Begin
+                            Send ShowInfoBox (String(nValue) + " euros earned by " + sLabel)
+                        End
+                    End_Procedure
+                End_Object
+                
+                //Load in all the sales person data that is relevant to the Chart
+                Procedure LoadSalesData
+                    String sXAxisLabels
+                    String[] sSalesPersonNames
+                    tChartData[] chartData
+                    Integer iRandomRed iRandomGreen iRandomBlue iCount iAverageMoneyEarned iGrandTotalEarned iIndex
+                    Integer[] iTotalMoneyEarned
+                    
+                    Move "Money earned" to chartData[0].sLabel
+                    
+                    //Define random color for the dataset
+                    Move (Random(255)) to iRandomRed
+                    Move (Random(255)) to iRandomBlue
+                    Move (Random(255)) to iRandomGreen
+                    
+                    Move ("rgba(" + String(iRandomRed) + "," + String(iRandomGreen) + "," + String(iRandomBlue) + ",0.5)") to chartData[0].sSeriesColor
+                    
+                    Send Clear of oOrderHeader_DD                   
+                    Send Find of oOrderHeader_DD GE 4
+                    
+                    While (Found)
+                        
+                        Move (SearchArray(Trim(SalesPerson.Name), sSalesPersonNames)) to iIndex
+                        
+                        If (iIndex <> -1) Begin
+                            Move (OrderHeader.Order_Total + iTotalMoneyEarned[iIndex]) to iTotalMoneyEarned[iIndex]
+                        End
+                        Else Begin
+                            Move (Trim(SalesPerson.Name)) to sSalesPersonNames[-1]
+                            Move OrderHeader.Order_Total to iTotalMoneyEarned[-1]
+                        End
+                        
+                        Send Find of oOrderHeader_DD NEXT_RECORD 4
+                    Loop
+                    
+                    For iCount from 0 to (SizeOfArray(sSalesPersonNames)-1)
+                        
+                        //Keep track of the grand total earned by all sales persons
+                        Move (iGrandTotalEarned + iTotalMoneyEarned[iCount]) to iGrandTotalEarned
+                        
+                        Move iTotalMoneyEarned[iCount] to chartData[0].dataPoints[iCount].y
+                        
+                        If (SizeOfString(sXAxisLabels)=0) Begin
+                            Move sSalesPersonNames[iCount] to sXAxisLabels
+                        End
+                        Else Begin
+                            Append sXAxisLabels (", " + sSalesPersonNames[iCount])
+                        End
+                    Loop
+                    
+                    WebSet psXAxisLabels of oSalesPersonChart to sXAxisLabels
+                    
+                    Move (iGrandTotalEarned / (SizeOfArray(iTotalMoneyEarned))) to iAverageMoneyEarned
+                    
+                    Move "Average" to chartData[1].sLabel
+                    Move "line" to chartData[1].sType
+                    Move "rgb(100, 181, 246)" to chartData[1].sSeriesColor
+                    
+                    For iCount from 0 to (SizeOfArray(sSalesPersonNames)-1)
+                        Move iAverageMoneyEarned to chartData[1].dataPoints[-1].y
+                    Loop
+                    
+                    Send CreateChart of oSalesPersonChart chartData
+                End_Procedure
+            End_Object
+            
+            //Tab page that shows the total money spend per company
+            Object oMoneyPerCompanyTab is a cWebTabPage
+                Set piColumnCount to 11
+                Set psCaption to "Total money spend per company"
+                
+                Object oSalesPerson_DD is a cSalesPersonDataDictionary
+                End_Object
+
+                Object oCustomer_DD is a cCustomerDataDictionary
+                End_Object
+
+                Object oOrderHeader_DD is a cOrderHeaderDataDictionary
+                    Set DDO_Server to oSalesPerson_DD
+                    Set DDO_Server to oCustomer_DD
+                End_Object
+
+                Set Main_DD to oOrderHeader_DD
+                Set Server to oOrderHeader_DD
+                
+                //WebCombo that allows the chart type to be set
+                Object oCompanyChartTypeCombo is a cWebCombo
+                    Set psLabel to "Chart type"
+                    Set psValue to "bar"
+                    Set pbServerOnChange to True
+                    Set piColumnSpan to 2
+        
+                    Procedure OnFill
+                        String[] asTypes
+                        String sChartLib
+                        Integer iIndex
+                        
+                        WebGet psValue of oCompanyChartLibraryCombo to sChartLib
+                        Get ChartTypes sChartLib to asTypes
+                        
+                        For iIndex from 0 to (SizeOfArray(asTypes)-1)
+                            Send AddComboItem asTypes[iIndex] asTypes[iIndex]
+                        Loop
+                        
+                    End_Procedure
+                    
+                    Procedure OnChange String sNewValue String sOldValue
+                        WebSet psChartType of oCompanyTotalChart to sNewValue
+                        Send UpdateChart of oCompanyTotalChart
+                    End_Procedure
+                End_Object
+
+                //WebCombo that allows the chart library to be set
+                Object oCompanyChartLibraryCombo is a cWebCombo
+                    Set psLabel to "Chart library"
+                    Set psValue to "Chartjs"
+                    Set pbServerOnChange to True
+                    Set piColumnSpan to 2
+        
+                    Procedure OnFill
+                        Send AddComboItem "Chartjs" clChartjs
+                        Send AddComboItem "HighCharts" clHighCharts
+                        Send AddComboItem "Syncfusion" clSyncfusion
+                    End_Procedure
+                    
+                    Procedure OnChange String sNewValue String sOldValue
+                        WebSet psChartingLibrary of oCompanyTotalChart to sNewValue
+                        Send Refill of oCompanyChartTypeCombo
+                    End_Procedure
+                End_Object
+                
+                //ChartControl that shows how much money each company has spend
+                Object oCompanyTotalChart is a cChart
+                    Set psTitle to "Total money spend per company"
+                    Set psSubtitle to "This chart shows how much money each company has spend"
+                    Set psChartBackgroundColor to "white"
+                    Set psYAxisLabel to "Total money spend"
+                    //Left or right
+                    Set psLegendAlignment to "right"
+                    Set piColumnSpan to 10
+                    Set pbFillHeight to True
+
+                    Procedure OnLoad
+                        String sChartingLibrary sChartType
+                    
+                        //Get the charting library
+                        WebGet psValue of oCompanyChartLibraryCombo to sChartingLibrary
+                        WebSet psChartingLibrary of oCompanyTotalChart to sChartingLibrary
+                        
+                        //Get the chart type
+                        WebGet psValue of oCompanyChartTypeCombo to sChartType
+                        WebSet psChartType of oCompanyTotalChart to sChartType
+                        
+                        Send LoadCompanyData
+                    End_Procedure
+                End_Object
+                
+                //Load in all the company data that is relevant to the chart
+                Procedure LoadCompanyData
+                    String sXAxisLabels
+                    String[] sCompanyNames
+                    tChartData[] chartData
+                    Integer iRandomRed iRandomGreen iRandomBlue iCount iIndex
+                    Integer[] iTotalMoneySpend
+                    
+                    Move "Money spend" to chartData[0].sLabel
+                    
+                    //Define random color for the dataset
+                    Move (Random(255)) to iRandomRed
+                    Move (Random(255)) to iRandomBlue
+                    Move (Random(255)) to iRandomGreen
+                    
+                    Move ("rgba(" + String(iRandomRed) + "," + String(iRandomGreen) + "," + String(iRandomBlue) + ",0.5)") to chartData[0].sSeriesColor
+                    
+                    Send Clear of oOrderHeader_DD
+                    Send Find of oOrderHeader_DD GE 2
+                    
+                    While (Found)
+                        
+                        Move (SearchArray((Replace(",",Trim(Customer.Name), "")), sCompanyNames)) to iIndex
+                        
+                        If (iIndex <> -1) Begin
+                            Move (OrderHeader.Order_Total + iTotalMoneySpend[iIndex]) to iTotalMoneySpend[iIndex]
+                        End
+                        Else Begin
+                            Move (Replace(",",Trim(Customer.Name), "")) to sCompanyNames[-1]
+                            Move OrderHeader.Order_Total to iTotalMoneySpend[-1]
+                        End
+                        
+                        Send Find of oOrderHeader_DD NEXT_RECORD 2
+                    Loop
+                    
+                    For iCount from 0 to (SizeOfArray(sCompanyNames)-1)
+                        
+                        Move iTotalMoneySpend[iCount] to chartData[0].dataPoints[iCount].y
+                        
+                        If (SizeOfString(sXAxisLabels)=0) Begin
+                            Move sCompanyNames[iCount] to sXAxisLabels
+                        End
+                        Else Begin
+                            Append sXAxisLabels (", " + sCompanyNames[iCount])
+                        End
+                    Loop
+                    
+                    WebSet psXAxisLabels of oCompanyTotalChart to sXAxisLabels
+                    
+                    Send CreateChart of oCompanyTotalChart chartData
+                End_Procedure
+                
+            End_Object
+            
+            //Tab page that shows the inventory worth of each vendor
+            Object oInventoryPerVendorTabPage is a cWebTabPage
+                Set piColumnCount to 11
+                Set psCaption to "Inventory per vendor"
+                
+                Object oVendor_DD is a cVendorDataDictionary
+                End_Object
+
+                Object oInventory_DD is a cInventoryDataDictionary
+                    Set DDO_Server to oVendor_DD
+                End_Object
+
+                Set Main_DD to oInventory_DD
+                Set Server to oInventory_DD
+                
+                //WebCombo that allows the chart type to be set
+                Object oInventoryChartTypeCombo is a cWebCombo
+                    Set psLabel to "Chart type"
+                    Set psValue to "bar"
+                    Set pbServerOnChange to True
+                    Set piColumnSpan to 2
+        
+                    Procedure OnFill
+                        String[] asTypes
+                        String sChartLib
+                        Integer iIndex
+                        
+                        WebGet psValue of oInventoryChartLibraryCombo to sChartLib
+                        Get ChartTypes sChartLib to asTypes
+                        
+                        For iIndex from 0 to (SizeOfArray(asTypes)-1)
+                            Send AddComboItem asTypes[iIndex] asTypes[iIndex]
+                        Loop
+                        
+                    End_Procedure
+                    
+                    Procedure OnChange String sNewValue String sOldValue
+                        WebSet psChartType of oVendorInventoryChart to sNewValue
+                        Send UpdateChart of oVendorInventoryChart
+                    End_Procedure
+                End_Object
+
+                //WebCombo that allows the chart library to be set
+                Object oInventoryChartLibraryCombo is a cWebCombo
+                    Set psLabel to "Chart library"
+                    Set psValue to "Chartjs"
+                    Set pbServerOnChange to True
+                    Set piColumnSpan to 2
+        
+                    Procedure OnFill
+                        Send AddComboItem "Chartjs" clChartjs
+                        Send AddComboItem "HighCharts" clHighCharts
+                        Send AddComboItem "Syncfusion" clSyncfusion
+                    End_Procedure
+                    
+                    Procedure OnChange String sNewValue String sOldValue
+                        WebSet psChartingLibrary of oVendorInventoryChart to sNewValue
+                        Send Refill of oInventoryChartTypeCombo
+                    End_Procedure
+                End_Object
+                
+                //ChartControl to show the total inventory per vendor
+                Object oVendorInventoryChart is a cChart
+                    Set psTitle to "Total inventory per vendor"
+                    Set psSubtitle to "The value of a vendors inventory"
+                    Set psChartBackgroundColor to "white"
+                    Set psYAxisLabel to "Inventory worth in euros"
+                    //Left or right
+                    Set psLegendAlignment to "right"
+                    Set piColumnSpan to 10
+                    Set pbFillHeight to True
+
+                    Procedure OnLoad
+                        String sChartingLibrary sChartType
+                    
+                        //Get the charting library
+                        WebGet psValue of oInventoryChartLibraryCombo to sChartingLibrary
+                        WebSet psChartingLibrary of oVendorInventoryChart to sChartingLibrary
+                        
+                        //Get the chart type
+                        WebGet psValue of oInventoryChartTypeCombo to sChartType
+                        WebSet psChartType of oVendorInventoryChart to sChartType
+                        
+                        Send LoadVendorData
+                    End_Procedure
+                End_Object
+                
+                //Loads the data for each vendor
+                Procedure LoadVendorData
+                    String sXAxisLabels
+                    String[] sVendorNames
+                    tChartData[] chartData
+                    Integer iRandomRed iRandomGreen iRandomBlue iCount iIndex
+                    Integer[] iTotalInventory
+                    
+                    Move "Inventory worth" to chartData[0].sLabel
+                    
+                    //Define random color for the dataset
+                    Move (Random(255)) to iRandomRed
+                    Move (Random(255)) to iRandomBlue
+                    Move (Random(255)) to iRandomGreen
+                    
+                    Move ("rgba(" + String(iRandomRed) + "," + String(iRandomGreen) + "," + String(iRandomBlue) + ",0.5)") to chartData[0].sSeriesColor
+                    
+                    Send Clear of oInventory_DD
+                    
+                    Send Find of oInventory_DD GE 2
+                    
+                    While (Found)
+                        
+                        Move (SearchArray(Trim(Vendor.Name), sVendorNames)) to iIndex
+                        
+                        If (iIndex <> -1) Begin
+                            Move ((Inventory.Unit_Price * Inventory.On_Hand) + iTotalInventory[iIndex]) to iTotalInventory[iIndex]
+                        End
+                        Else Begin
+                            Move (Trim(Vendor.Name)) to sVendorNames[-1]
+                            Move (Inventory.Unit_Price * Inventory.On_Hand) to iTotalInventory[-1]
+                        End
+                        
+                        Send Find of oInventory_DD NEXT_RECORD 2
+                    Loop
+                    
+                    for iCount from 0 to (SizeOfArray(sVendorNames)-1)
+                        
+                        Move iTotalInventory[iCount] to chartData[0].dataPoints[iCount].y
+                        
+                        If (SizeOfString(sXAxisLabels)=0) Begin
+                            Move sVendorNames[iCount] to sXAxisLabels
+                        End
+                        Else Begin
+                            Append sXAxisLabels (", " + sVendorNames[iCount])
+                        End
+                    Loop
+                    
+                    WebSet psXAxisLabels of oVendorInventoryChart to sXAxisLabels
+                    
+                    Send CreateChart of oVendorInventoryChart chartData
+                End_Procedure
+                
+            End_Object
+            
+            //Tab page that shows an example about how live charts could be done
+            Object oLiveDemoTab is a cWebTabPage
+                Set psCaption to "Live chart"
+                Set piColumnCount to 11
+                Set pbServerOnShow to True
+                Set pbServerOnHide to True
+                
+                //WebCombo that allows the chart library to be set
+                Object oLiveChartLibraryCombo is a cWebCombo
+                    Set psLabel to "Chart library"
+                    Set psValue to "Chartjs"
+                    Set pbServerOnChange to True
+                    Set piColumnSpan to 2
+        
+                    Procedure OnFill
+                        Send AddComboItem "Chartjs" clChartjs
+                        Send AddComboItem "HighCharts" clHighCharts
+                        Send AddComboItem "Syncfusion" clSyncfusion
+                    End_Procedure
+                    
+                    Procedure OnChange String sNewValue String sOldValue
+                        WebSet psChartingLibrary of oLiveChartDemo to sNewValue
+                    End_Procedure
+                End_Object
+                
+                //ChartControl that shows an example about how live data could work
+                Object oLiveChartDemo is a cChart
+                    Set psTitle to "Live chart demo"
+                    Set psSubtitle to "A demonstration of using the library to display live information"
+                    Set psChartBackgroundColor to "white"
+                    Set psYAxisLabel to "Value"
+                    Set psChartType to "line"
+                    //Left or right
+                    Set psLegendAlignment to "right"
+                    Set piColumnSpan to 10
+                    Set pbFillHeight to True
+
+                    //Initializes a dataseries
+                    Procedure OnLoad
+                        String sChartingLibrary sChartType
+                        tChartData[] chartData
+                        
+                        Move "Live series" to chartData[0].sLabel
+                        Move 0 to chartData[0].dataPoints[-1].y
+                    
+                        //Get the charting library
+                        WebGet psValue of oLiveChartLibraryCombo to sChartingLibrary
+                        WebSet psChartingLibrary of oLiveChartDemo to sChartingLibrary
+                        
+                        Send CreateChart chartData
+                    End_Procedure
+
+                End_Object
+
+                Procedure OnHide
+                    Forward Send OnHide
+                    
+                    Send Stop to oPollingDataTimer
+                End_Procedure
+
+                Procedure OnShow
+                    Forward Send OnShow
+                    
+                    Send Start to oPollingDataTimer
+                End_Procedure
+
+                //Timer that adds data to the chart every 5 seconds
+                Object oPollingDataTimer is a cWebTimer
+                    //Look for data every 2 seconds
+                    Set piInterval to 2000
+                    Set pbAutoStart to False
+                    
+                    { WebProperty = Server }
+                    Property Integer piDataIndex 1
+                    
+                    Procedure OnTimer
+                        String sXAxisLabelName
+                        Integer iValue iDataIndex
+                        tPointData data
+                        
+                        WebGet piDataIndex to iDataIndex
+                        
+                        Move (Random(200)) to iValue
+                        Move iValue to data.y
+                        
+                        Move ("Live demo "  + (String(iDataIndex))) to sXAxisLabelName
+                        
+                        Send AddNewDataPoint of oLiveChartDemo "Live series" sXAxisLabelName data
+                        
+                        Increment iDataIndex
+                        WebSet piDataIndex to iDataIndex
+                    End_Procedure
+                End_Object
+                            
+            End_Object
+            
+            //Tab page that shows how multiseries work
+            Object oMultiseriesChartTabPage is a cWebTabPage
+                Set psCaption to "Multiseries chart"
+                Set piColumnCount to 11
+                
+                Object oSalesPerson_DD is a cSalesPersonDataDictionary
+                End_Object
+
+                Object oCustomer_DD is a cCustomerDataDictionary
+                End_Object
+
+                Object oOrderHeader_DD is a cOrderHeaderDataDictionary
+                    Set DDO_Server to oSalesPerson_DD
+                    Set DDO_Server to oCustomer_DD
+                End_Object
+
+                Set Main_DD to oOrderHeader_DD
+                Set Server to oOrderHeader_DD
+                
+                //WebCombo that allows the chart type to be set
+                Object oMultiseriesChartTypeCombo is a cWebCombo
+                    Set psLabel to "Chart type"
+                    Set psValue to "bar"
+                    Set pbServerOnChange to True
+                    Set piColumnSpan to 2
+        
+                    Procedure OnFill
+                        String[] asTypes
+                        String sChartLib
+                        Integer iIndex
+                        
+                        WebGet psValue of oMultiseriesChartLibraryCombo to sChartLib
+                        Get ChartTypes sChartLib to asTypes
+                        
+                        For iIndex from 0 to (SizeOfArray(asTypes)-1)
+                            Send AddComboItem asTypes[iIndex] asTypes[iIndex]
+                        Loop
+                        
+                    End_Procedure
+                    
+                    Procedure OnChange String sNewValue String sOldValue
+                        WebSet psChartType of oMultiseriesChart to sNewValue
+                        Send UpdateChart of oMultiseriesChart
+                    End_Procedure
+                End_Object
+
+                //WebCombo that allows the charting library to be set
+                Object oMultiseriesChartLibraryCombo is a cWebCombo
+                    Set psLabel to "Chart library"
+                    Set psValue to "Chartjs"
+                    Set pbServerOnChange to True
+                    Set piColumnSpan to 2
+        
+                    Procedure OnFill
+                        Send AddComboItem "Chartjs" clChartjs
+                        Send AddComboItem "HighCharts" clHighCharts
+                        Send AddComboItem "Syncfusion" clSyncfusion
+                    End_Procedure
+                    
+                    Procedure OnChange String sNewValue String sOldValue
+                        WebSet psChartingLibrary of oMultiseriesChart to sNewValue
+                        Send Refill of oMultiseriesChartTypeCombo
+                    End_Procedure
+                End_Object
+                
+                //ChartControl that demonstrates how multiseries charts work
+                Object oMultiseriesChart is a cChart
+                    Set psTitle to "Multiseries charts"
+                    Set psSubtitle to "Click on a dataset to remove it from the chart!"
+                    Set psChartBackgroundColor to "white"
+                    Set psYAxisLabel to "Total sales"
+                    //Left or right
+                    Set psLegendAlignment to "right"
+                    Set piColumnSpan to 10
+                    Set pbFillHeight to True
+
+                    Procedure OnLoad
+                        String sChartingLibrary sChartType
+                    
+                        //Get the charting library
+                        WebGet psValue of oMultiseriesChartLibraryCombo to sChartingLibrary
+                        WebSet psChartingLibrary of oMultiseriesChart to sChartingLibrary
+                        
+                        //Get the chart type
+                        WebGet psValue of oMultiseriesChartTypeCombo to sChartType
+                        WebSet psChartType of oMultiseriesChart to sChartType
+                        
+                        Send CreateMultiseriesChart
+                    End_Procedure
+                    
+                    Procedure OnClick String sLabel Number nValue String sTooltip Integer iIndex String sDatasetName
+                        Send RemoveDataset sDatasetName
+                    End_Procedure
+                End_Object
+
+                //Loads in all the data for the multiseries chart
+                Procedure CreateMultiseriesChart
+                    String sXAxisLabels
+                    String[] sSalesPersons sDates
+                    tChartData[] chartData
+                    Integer iCount iIndex iDateIndex iLoopCount iDateCount
+                    
+                    Move 0 to iCount
+                    
+                    Send Clear of oOrderHeader_DD                    
+                    Send Find of oOrderHeader_DD GE 3
+                    
+                    //Only get the first 100 records
+                    While (Found and iCount < 100)
+                        
+                        Move (SearchArray(OrderHeader.Order_Date, sDates)) to iDateIndex
+                        
+                        If (iDateIndex = -1) Begin
+                            Move (Trim(OrderHeader.Order_Date)) to sDates[iDateIndex]
+                        End
+                        
+                        Move (SearchArray((Trim(SalesPerson.Name)), sSalesPersons)) to iIndex
+                        
+                        If (iIndex = -1) Begin
+                            Move (Trim(SalesPerson.Name)) to sSalesPersons[-1]
+                            Move OrderHeader.Order_Total to chartData[iIndex].dataPoints[iDateIndex].y
+                        End
+                        Else Begin
+                            Move OrderHeader.Order_Total to chartData[iIndex].dataPoints[iDateIndex].y
+                        End
+                          
+                        Increment iCount
+                        Send Find of oOrderHeader_DD NEXT_RECORD 3
+                    Loop
+                    
+                    For iLoopCount from 0 to (SizeOfArray(sSalesPersons)-1)
+                        Move sSalesPersons[iLoopCount] to chartData[iLoopCount].sLabel
+                    Loop
+                    
+                    For iDateCount from 0 to (SizeOfArray(sDates)-1)
+                        
+                        If (SizeOfString(sXAxisLabels)=0) Begin
+                            Move sDates[iDateCount] to sXAxisLabels
+                        End
+                        Else Begin
+                            Append sXAxisLabels (", " + sDates[iDateCount])
+                        End
+                    Loop
+                    
+                    WebSet psXAxisLabels of oMultiseriesChart to sXAxisLabels
+                    
+                    Send CreateChart of oMultiseriesChart chartData
+                End_Procedure
+                            
+            End_Object
+            
+        End_Object
+        
+    End_Object
+
+    Procedure OnLoad
+        String[] asChartjsTypes asHighChartsTypes asSyncfusionTypes
+        
+        Forward Send OnLoad
+        
+        //Define chartjs types 
+        Move "line" to asChartjsTypes[-1]
+        Move "bar" to asChartjsTypes[-1]
+        Move "doughnut" to asChartjsTypes[-1]
+        Move "pie" to asChartjsTypes[-1]
+        Move "scatter" to asChartjsTypes[-1]
+        Move "bubble" to asChartjsTypes[-1]
+        Move "polarArea" to asChartjsTypes[-1]
+        Move "radar" to asChartjsTypes[-1]
+        
+        //Define HighCharts types
+        Move "line" to asHighChartsTypes[-1]
+        Move "bar" to asHighChartsTypes[-1]
+        Move "column" to asHighChartsTypes[-1]
+        Move "area" to asHighChartsTypes[-1]
+        Move "pie" to asHighChartsTypes[-1]
+        Move "areaspline" to asHighChartsTypes[-1]
+        Move "scatter" to asHighChartsTypes[-1]
+        Move "spline" to asHighChartsTypes[-1]
+        
+        //Define Syncfusion types
+        Move "line" to asSyncfusionTypes[-1]
+        Move "bar" to asSyncfusionTypes[-1]
+        Move "column" to asSyncfusionTypes[-1]
+        Move "pie" to asSyncfusionTypes[-1]
+        Move "doughnut" to asSyncfusionTypes[-1]
+        Move "area" to asSyncfusionTypes[-1]
+        Move "radar" to asSyncfusionTypes[-1]
+        Move "scatter" to asSyncfusionTypes[-1]
+        Move "bubble" to asSyncfusionTypes[-1]
+        
+        WebSet pasChartjsTypes to asChartjsTypes
+        WebSet pasHighChartsTypes to asHighChartsTypes
+        WebSet pasSyncfusionTypes to asSyncfusionTypes
+    End_Procedure
+    
+    //Gets the charttypes of the specified chart library
+    Function ChartTypes String sChartLibrary Returns String[]
+        String[] asTypes
+        
+        Case Begin
+            Case (sChartLibrary = clChartjs)
+                WebGet pasChartjsTypes to asTypes
+                Break
+            Case (sChartLibrary = clHighCharts)
+                WebGet pasHighChartsTypes to asTypes
+                Break
+            Case (sChartLibrary = clSyncfusion)
+                WebGet pasSyncfusionTypes to asTypes
+                Break
+        Case End
+        
+        Function_Return asTypes
+    End_Function
+    
+End_Object
+
