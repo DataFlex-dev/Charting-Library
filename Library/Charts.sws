@@ -1,0 +1,9 @@
+{
+    "df": 26.0,
+    "paths": {
+        "fileList": "DummyFilelist.cfg"
+    },
+    "studio": {
+        "DefaultFormHeight": 12
+    }
+}

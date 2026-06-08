@@ -7,5 +7,3 @@ DefaultFormHeight=12
 [Conditionals]
 Is$WebApp=True
 Is$Win64=True
-[Projects]
-Project0=WebApp.src
