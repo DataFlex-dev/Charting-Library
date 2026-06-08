@@ -1,5 +1,27 @@
 {
     "df": 26.0,
+    "name": "Charts",
+    "description": "DataFlex chart library to intergrate charts into your web applications",
+    "package": {
+        "htmlIncludes": [
+            "Charts/ChartControl.js",
+            "Charts/Chartjs/chart.min.js",
+            {
+                "file": "Charts/Chartjs/ChartjsRenderer.js",
+                "module": true
+            }
+        ],
+        "icon": "Icon.png",
+        "install": [
+            "AppHtml/Charts/ChartControl.js",
+            "AppHtml/Charts/ChartBase/ChartBase.js",
+            "AppHtml/Charts/Chartjs/chart.min.js",
+            "AppHtml/Charts/Chartjs/ChartjsRenderer.js",
+            "AppHtml/Charts/Chartjs/LICENSE.txt"
+        ],
+        "license": "BSD-3-Clause",
+        "version": "1.0.0"
+    },
     "paths": {
         "fileList": "DummyFilelist.cfg"
     },

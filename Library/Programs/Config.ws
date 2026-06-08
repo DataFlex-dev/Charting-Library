@@ -9,4 +9,4 @@ DDSrcPath=.
 HelpPath=.
 ProgramPath=Programs
 FileList=DummyFilelist.cfg
-Description=Charts
+Description=DataFlex chart library to intergrate charts into your web applications
