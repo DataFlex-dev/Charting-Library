@@ -109,7 +109,12 @@ class ChartjsChart extends ChartBase {
                     borderColor: data.sSeriesColor,
                     backgroundColor: data.sSeriesColor,
                     type: data.sType,
-                    borderWidth: data.nLineThickness ? data.nLineThickness : 2
+                    borderWidth: data.nLineThickness ? data.nLineThickness : 2,
+                    pointRadius: data.nPointRadius ? data.nPointRadius : 3,
+                    pointHoverRadius: data.nPointHoverRadius ? data.nPointHoverRadius : 4,
+                    pointBackgroundColor: data.sPointBackgroundColor ? data.sPointBackgroundColor : undefined,
+                    pointBorderColor: data.sSeriesColor,
+                    pointBorderWidth: data.nPointBorderWidth ? data.nPointBorderWidth : 1
                 }
                 break;
             case "pie":
@@ -126,7 +131,12 @@ class ChartjsChart extends ChartBase {
                 newData = {
                     label: data.sLabel,
                     data: [],
-                    type: data.sType
+                    type: data.sType,
+                    pointRadius: data.nPointRadius ? data.nPointRadius : 3,
+                    pointHoverRadius: data.nPointHoverRadius ? data.nPointHoverRadius : 4,
+                    pointBackgroundColor: data.sPointBackgroundColor ? data.sPointBackgroundColor : undefined,
+                    pointBorderColor: data.sSeriesColor,
+                    pointBorderWidth: data.nPointBorderWidth ? data.nPointBorderWidth : 1
                 }
                 for (let index = 0; index < this.xAxisLabels.length; index++) {
                     newData.data[index] = {

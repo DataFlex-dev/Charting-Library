@@ -15,7 +15,11 @@ Struct tChartData
     tPointData[] dataPoints
     //Optionals
     String sType
-    Number nLineThickness
+    Number nLineThickness // Default is 2
+    Number nPointRadius // Default is 3
+    Number nPointHoverRadius // Default is 4
+    Number nPointBorderWidth // Default is 1
+    String sPointBackgroundColor // Default is same as series color
 End_Struct
 
 Class cChart is a cWebBaseControl
