@@ -1,7 +1,7 @@
 import { ChartBase, HoverBehavior, TooltipLocation } from "../ChartBase/ChartBase.js";
 const availableChartTypes = ['line', 'bar', 'pie', 'doughnut', 'column', 'radar', 'stepline', 'stackingline', 'stackingline100', 'spline',
     'area', 'stackingarea', 'stackingarea100', 'stackingsteparea', 'steparea', 'splinearea', 'stackingcolumn', 'stackingcolumn100', 'stackingbar',
-    'stackingbar100', 'scatter', 'bubble', 'polar', 'radar', 'pareto'];
+    'stackingbar100', 'scatter', 'bubble', 'polar', 'pareto'];
 
 class SyncfusionChart extends ChartBase {
 

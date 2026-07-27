@@ -1,5 +1,5 @@
 import { ChartBase, HoverBehavior, TooltipLocation } from "../ChartBase/ChartBase.js";
-const availableChartTypes = ['line', 'bar', 'column', 'area', 'pie', 'areaspline', 'scatter', 'spline'];
+const availableChartTypes = ['line', 'bar', 'column', 'area', 'pie', 'doughnut', 'areaspline', 'scatter', 'spline'];
 
 class HighChartsChart extends ChartBase {
 
@@ -13,7 +13,7 @@ class HighChartsChart extends ChartBase {
             //Create the highcharts chart object
             this.currentChart = Highcharts.chart(this.chartLocation, {
                 chart: {
-                    type: this.chartType == "doughnut" ? "pie" : this.chartType,
+                    type: this.chartType === "doughnut" ? "pie" : this.chartType,
                     backgroundColor: this.backgroundColor,
                     panning: this.zoomable,
                     panKey: "shift",
@@ -141,14 +141,12 @@ class HighChartsChart extends ChartBase {
                 }
                 break;
             case "pie":
-            case "pyramid":
-            case "funnel":
             case "doughnut":
                 newData = {
                     name: data.sLabel,
                     data: [],
                     type: data.sType,
-                    innerSize: this.chartType == "doughnut" ? '50%' : '0%'
+                    innerSize: this.chartType === "doughnut" ? '50%' : '0%'
                 }
                 for (let index = 0; index < this.xAxisLabels.length; index++) {
                     newData.data[index] = pointOptions(data.dataPoints[index], {
