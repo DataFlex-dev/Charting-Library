@@ -68,7 +68,6 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
 
     //Function that handles creating a chart
     createChart() {
-        let exists = false;
         //Assign the action data to chartdata, only if action data exists
         if (this._tActionData) this.chartData = this._tActionData;
 
@@ -84,26 +83,18 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
         //If there are no registered renderers throw an error
         if (registeredRenderers.length === 0) throw new df.Error(999, 'No charting libraries found, check your index.html if you included all files properly!');
 
-        //Loop through each of the registered renderers and check if the name equals that of psChartingLibrary
-        registeredRenderers.forEach(renderer => {
-            if (renderer.name.includes(this.psChartingLibrary)) {
-                exists = true;
-                
-                this.set_isSvg(renderer.isSvg);
-                this.chartController = new renderer(this);
-                return;
-            }
-        });
-
-        //If the charting library cannot be found in the list throw an error
-        if (!exists) {
-            
+        //Find the registered renderer matching psChartingLibrary
+        const renderer = registeredRenderers.find(renderer => renderer.name.includes(this.psChartingLibrary));
+        if (renderer) {
+            this.set_isSvg(renderer.isSvg);
+            this.chartController = new renderer(this);
+        } else {
+            //If the charting library cannot be found in the list throw an error
             if (this.chartController) {
                 throw new df.Error(999, 'The chart library you are trying to use does not exist, consult the documentation to see the available charting libraries!');
             } else {
                 console.warn("Charting library was not found during initalization");
             }
-            
         }
 
     }
