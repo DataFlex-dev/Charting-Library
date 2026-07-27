@@ -110,78 +110,43 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
 
     //Function to add a single datapoint to a existing data series
     addNewDataPoint(datasetName, xAxisLabel) {
-        let datasetIndex = null;
-        let data = this._tActionData;
-
-        this.chartData.forEach(dataseries => {
-            // Check if the dataset name exists in chartdata
-            if (dataseries.sLabel === datasetName) {
-                datasetIndex = this.chartData.indexOf(dataseries);
-            }
-        });
-
-        //If the dataset exists add the datapoint, otherwise throw an error
-        if (datasetIndex !== null) {
-            this.psXAxisLabels.push(xAxisLabel);
-            this.chartData[datasetIndex].dataPoints.push(data);
-
-            this.chartController.addNewDataPoint(datasetIndex, data);
-        } else {
+        const datasetIndex = this.chartData.findIndex(({ sLabel }) => sLabel === datasetName);
+        if (datasetIndex === -1) {
             throw new df.Error(999, "Dataset with specified name does not exist");
         }
+
+        const data = this._tActionData;
+        this.psXAxisLabels.push(xAxisLabel);
+        this.chartData[datasetIndex].dataPoints.push(data);
+        this.chartController.addNewDataPoint(datasetIndex, data);
     }
 
     //Change a single datapoint inside of a series
     changeDataPoint(datasetName, valueIndex, newValue) {
-        newValue = parseFloat(newValue);
-        let exists = false;
-        let datasetIndex = null;
-
-        this.chartData.forEach(element => {
-            //Check if dataset that was passed exists
-            if (element.sLabel === datasetName) {
-                //Get the index of the found element
-                datasetIndex = this.chartData.indexOf(element);
-                //If the dataset is found, check if the old value exists
-                if (valueIndex > this.chartData[datasetIndex].length) {
-                    throw new df.Error(999, "Index out of bounds!");
-                } else {
-                    exists = true;
-                }
-            }
-        });
-
-        //If it exists change it, if it doesnt exist throw an error
-        if (exists) {
-            //Change the value in the chartdata monitored by the control itself
-            this.chartData[datasetIndex].dataPoints[valueIndex].y = newValue;
-            //Tell the chartdata inside of the chart to change too
-            this.chartController.changeDataPoint(datasetIndex, valueIndex, newValue);
-        } else {
+        const datasetIndex = this.chartData.findIndex(({ sLabel }) => sLabel === datasetName);
+        if (datasetIndex === -1) {
             throw new df.Error(999, "The dataset specified does not exist");
         }
+
+        const dataPoints = this.chartData[datasetIndex].dataPoints;
+        if (valueIndex < 0 || valueIndex >= dataPoints.length) {
+            throw new df.Error(999, "Index out of bounds!");
+        }
+
+        const value = parseFloat(newValue);
+        dataPoints[valueIndex].y = value;
+        this.chartController.changeDataPoint(datasetIndex, valueIndex, value);
     }
 
     //Remove a dataset from the chart based on name
     removeDataset(datasetName) {
-        let datasetIndex = null;
-
-        //Look for the dataset inside of chartdata and if its found remove it
-        this.chartData.forEach(element => {
-
-            if (element.sLabel === datasetName) {
-
-                datasetIndex = this.chartData.indexOf(element);
-            }
-        })
-
-        //If the dataset is found delete it, otherwise throw an error
-        if (datasetIndex !== null) {
-            this.chartData.splice(datasetIndex, 1);
-            this.chartController.removeDataset(datasetIndex);
-        } else {
+        const datasetIndex = this.chartData.findIndex(({ sLabel }) => sLabel === datasetName);
+        if (datasetIndex === -1) {
             throw new df.Error(999, "The dataset specified does not exist");
         }
+
+        this.chartData.splice(datasetIndex, 1);
+        this.chartController.removeDataset(datasetIndex);
     }
 
     //Send the OnClick data to the client
