@@ -19,7 +19,7 @@ export class ChartBase {
             backgroundColor: control.psChartBackgroundColor,
             chartData: [...control.chartData],
             chartType: control.psChartType,
-            xAxisLabels: control.psXAxisLabels,
+            xAxisLabels: control._aXAxisLabels,
             xAxisLabelMinRotation: control.piXAxisLabelMinRotation,
             xAxisLabelMaxRotation: control.piXAxisLabelMaxRotation,
             yAxisLabel: control.psYAxisLabel,

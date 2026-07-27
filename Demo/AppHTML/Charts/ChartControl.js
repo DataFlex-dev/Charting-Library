@@ -27,6 +27,7 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
 
         this.chartData = null;
         this.chartInBuffer = false;
+        this._aXAxisLabels = [];
         this._eChart = null;
         this.chartController = undefined;
         this.isSvg = false;
@@ -77,9 +78,6 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
             return;
         }
 
-        //Double check to make sure the psXAxisLabel is an array
-        if (!(this.psXAxisLabels instanceof Array)) this.set_psXAxisLabels(this.psXAxisLabels);
-
         //If there are no registered renderers throw an error
         if (registeredRenderers.length === 0) throw new df.Error(999, 'No charting libraries found, check your index.html if you included all files properly!');
 
@@ -116,7 +114,7 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
         }
 
         const data = this._tActionData;
-        this.psXAxisLabels.push(xAxisLabel);
+        this._aXAxisLabels.push(xAxisLabel);
         this.chartData[datasetIndex].dataPoints.push(data);
         this.chartController.addNewDataPoint(datasetIndex, data);
     }
@@ -188,7 +186,7 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
 
     //Variable setter
     set_psXAxisLabels(sVal) {
-        this.psXAxisLabels = sVal.split(', ');
+        this._aXAxisLabels = sVal.split(', ');
     }
 
     registerRenderer(renderer, svgBased) {
@@ -198,8 +196,6 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
 
     //Call a full refresh of the chart in order to update stuff such as the title.
     updateChart() {
-
-        if (!(this.psXAxisLabels instanceof Array)) this.set_psXAxisLabels(this.psXAxisLabels);
 
         this.chartController.syncFromControl(this);
         this.chartController.drawChart();
