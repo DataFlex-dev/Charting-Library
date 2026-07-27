@@ -4,9 +4,23 @@ Define clHighCharts for "HighCharts"
 Define clChartjs for "Chartjs"
 Define clSyncfusion for "Syncfusion"
 
+Enum_List
+    Define hbNearest // Hover the nearest point only
+    Define hbIndex   // Hover all points at the same x-axis index
+End_Enum_List
+
+Enum_List
+    Define tlNearest // Position the tooltip near the hovered point
+    Define tlAverage // Position the tooltip at the average of the hovered points
+End_Enum_List
+
 Struct tPointData
     Number y
     String sTooltip
+    String sBackgroundColor      // Background color for this point
+    String sHoverBackgroundColor // Background color when this point is hovered
+    String sBorderColor          // Border color for this point
+    String sHoverBorderColor     // Border color when this point is hovered
 End_Struct
 
 Struct tChartData
@@ -16,10 +30,14 @@ Struct tChartData
     //Optionals
     String sType
     Number nLineThickness // Default is 2
+    Number nTension // Line curvature, defaults to the charting library's value
     Number nPointRadius // Default is 3
     Number nPointHoverRadius // Default is 4
     Number nPointBorderWidth // Default is 1
-    String sPointBackgroundColor // Default is same as series color
+    String sPointBackgroundColor      // Default background color for all points; defaults to series color
+    String sPointHoverBackgroundColor // Default background color when a point is hovered
+    String sPointBorderColor          // Default border color for all points; defaults to series color
+    String sPointHoverBorderColor     // Default border color when a point is hovered
 End_Struct
 
 Class cChart is a cWebBaseControl
@@ -56,6 +74,22 @@ Class cChart is a cWebBaseControl
         //The labels for the x axis points
         { WebProperty=Client }
         Property String psXAxisLabels
+
+        //Minimum rotation in degrees for x-axis labels
+        { WebProperty=Client }
+        Property Integer piXAxisLabelMinRotation 0
+
+        //Maximum rotation in degrees for x-axis labels
+        { WebProperty=Client }
+        Property Integer piXAxisLabelMaxRotation 50
+
+        //Set to False to hide the x axis
+        { WebProperty=Client }
+        Property Boolean pbShowXAxis True
+
+        //Set to False to hide the y axis
+        { WebProperty=Client }
+        Property Boolean pbShowYAxis True
         
         //Set the name of the charting library is used to render the chart with a specific library
         { WebProperty=Client }
@@ -72,6 +106,16 @@ Class cChart is a cWebBaseControl
         //Enable or disable zooming / panning in a chart
         { WebProperty=Client }
         Property Boolean pbZoomable True
+
+        //Hover the nearest point or all points at the same x-axis index
+        { WebProperty=Client }
+        { EnumList="hbNearest, hbIndex" }
+        Property Integer peHoverBehavior hbIndex
+
+        //Position the tooltip near the hovered point or at the average position
+        { WebProperty=Client }
+        { EnumList="tlNearest, tlAverage" }
+        Property Integer peTooltipLocation tlNearest
 
         //Js class
         Set psJSClass to "df.ChartControl"

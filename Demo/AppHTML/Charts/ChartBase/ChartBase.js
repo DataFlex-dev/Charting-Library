@@ -1,3 +1,6 @@
+export const HoverBehavior = Object.freeze({ hbNearest: 0, hbIndex: 1 });
+export const TooltipLocation = Object.freeze({ tlNearest: 0, tlAverage: 1 });
+
 export class ChartBase {
 
     constructor(control) {
@@ -9,10 +12,16 @@ export class ChartBase {
         this.chartData = [...control.chartData];
         this.chartType = control.psChartType;
         this.xAxisLabels = control.psXAxisLabels;
+        this.xAxisLabelMinRotation = control.piXAxisLabelMinRotation;
+        this.xAxisLabelMaxRotation = control.piXAxisLabelMaxRotation;
         this.yAxisLabel = control.psYAxisLabel;
+        this.showXAxis = control.pbShowXAxis;
+        this.showYAxis = control.pbShowYAxis;
         this.legendAlignment = control.psLegendAlignment;
         this.legendEnabled = control.pbLegendEnabled;
         this.zoomable = control.pbZoomable
+        this.hoverBehavior = control.peHoverBehavior;
+        this.tooltipLocation = control.peTooltipLocation;
 
         this.currentChart = null;
 

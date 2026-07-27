@@ -11,10 +11,16 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
         this.prop(df.tString, "psChartBackgroundColor", "");
         this.prop(df.tString, "psYAxisLabel", "");
         this.prop(df.tString, "psXAxisLabels", "");
+        this.prop(df.tInt, "piXAxisLabelMinRotation", 0);
+        this.prop(df.tInt, "piXAxisLabelMaxRotation", 50);
+        this.prop(df.tBool, "pbShowXAxis", true);
+        this.prop(df.tBool, "pbShowYAxis", true);
         this.prop(df.tString, "psChartingLibrary", "");
         this.prop(df.tString, "psLegendAlignment", "right");
         this.prop(df.tBool, "pbLegendEnabled", true);
         this.prop(df.tBool, "pbZoomable", true);
+        this.prop(df.tInt, "peHoverBehavior", 0);
+        this.prop(df.tInt, "peTooltipLocation", 0);
 
         //  Events
         this.event("OnClick", df.cCallModeWait);
@@ -249,6 +255,14 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
         this.psYAxisLabel = sVal;
     }
 
+    set_pbShowXAxis(bVal) {
+        this.pbShowXAxis = bVal;
+    }
+
+    set_pbShowYAxis(bVal) {
+        this.pbShowYAxis = bVal;
+    }
+
     //Variable setter
     set_psLegendAlignment(sVal) {
         this.psLegendAlignment = sVal;
@@ -289,10 +303,16 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
             chartType: this.psChartType,
             library: this.psChartingLibrary,
             xAxisLabels: this.psXAxisLabels,
+            xAxisLabelMinRotation: this.piXAxisLabelMinRotation,
+            xAxisLabelMaxRotation: this.piXAxisLabelMaxRotation,
             yAxisLabel: this.psYAxisLabel,
+            showXAxis: this.pbShowXAxis,
+            showYAxis: this.pbShowYAxis,
             legendAlignment: this.psLegendAlignment,
             legendEnabled: this.pbLegendEnabled,
-            zoomable: this.pbZoomable
+            zoomable: this.pbZoomable,
+            hoverBehavior: this.peHoverBehavior,
+            tooltipLocation: this.peTooltipLocation
         })
 
         this.chartController.drawChart();

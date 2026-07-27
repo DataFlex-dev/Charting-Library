@@ -1,4 +1,4 @@
-import { ChartBase } from "../ChartBase/ChartBase.js";
+import { ChartBase, HoverBehavior, TooltipLocation } from "../ChartBase/ChartBase.js";
 const availableChartTypes = ['line', 'bar', 'doughnut', 'pie', 'scatter', 'bubble', 'polarArea', 'radar'];
 
 class ChartjsChart extends ChartBase {
@@ -37,7 +37,12 @@ class ChartjsChart extends ChartBase {
                             display: this.legendEnabled
                         },
                         tooltip: {
+                            position: this.tooltipLocation === TooltipLocation.tlAverage ? 'average' : 'nearest',
                             callbacks: {
+                                labelColor: function (tooltipItem) {
+                                    const color = tooltipItem.element.options.borderColor;
+                                    return { borderColor: color, backgroundColor: color, borderWidth: 0 };
+                                },
                                 label: function (tooltipItem) {
                                     const customTooltip = tooltipItem.dataset.tooltips[tooltipItem.dataIndex];
 
@@ -53,10 +58,22 @@ class ChartjsChart extends ChartBase {
                             }
                         }
                     },
+                    interaction: {
+                        mode: this.hoverBehavior === HoverBehavior.hbIndex ? 'index' : 'nearest',
+                        intersect: true
+                    },
                     maintainAspectRatio: false,
                     responsive: true,
                     scales: {
+                        x: {
+                            display: this.showXAxis,
+                            ticks: {
+                                minRotation: this.xAxisLabelMinRotation,
+                                maxRotation: this.xAxisLabelMaxRotation
+                            }
+                        },
                         y: {
+                            display: this.showYAxis,
                             title: {
                                 display: true,
                                 text: this.yAxisLabel
@@ -100,20 +117,44 @@ class ChartjsChart extends ChartBase {
     formatData(data) {
         //Modify the data for the specific library
         let newData;
+        const seriesColor = data.sSeriesColor || undefined;
+        const colorOption = (property, fallback) => data.dataPoints.some(item => item[property])
+            ? data.dataPoints.map(item => item[property] || fallback)
+            : fallback;
+        const defaults = {
+            sBackgroundColor: data.sPointBackgroundColor || seriesColor,
+            sHoverBackgroundColor: data.sPointHoverBackgroundColor || undefined,
+            sBorderColor: data.sPointBorderColor || seriesColor,
+            sHoverBorderColor: data.sPointHoverBorderColor || undefined
+        };
+        const backgroundColors = colorOption('sBackgroundColor', defaults.sBackgroundColor);
+        const hoverBackgroundColors = colorOption('sHoverBackgroundColor', defaults.sHoverBackgroundColor);
+        const borderColors = colorOption('sBorderColor', defaults.sBorderColor);
+        const hoverBorderColors = colorOption('sHoverBorderColor', defaults.sHoverBorderColor);
+        const copyColors = colors => Array.isArray(colors) ? [...colors] : colors;
+        const type = data.sType || this.chartType;
+        const hasPointColorOverrides = data.dataPoints.some(item => item.sBackgroundColor || item.sBorderColor);
+        const pointColorsMatch = data.dataPoints.every(item =>
+                (item.sBackgroundColor || defaults.sBackgroundColor)
+                === (item.sBorderColor || defaults.sBorderColor)
+            );
 
         switch (this.chartType) {
             default:
                 newData = {
                     label: data.sLabel,
                     data: data.dataPoints.map(item => item.y),
-                    borderColor: data.sSeriesColor,
-                    backgroundColor: data.sSeriesColor,
+                    borderColor: type === 'bar' ? copyColors(borderColors) : seriesColor,
+                    backgroundColor: type === 'bar' ? copyColors(backgroundColors) : seriesColor,
                     type: data.sType,
-                    borderWidth: data.nLineThickness ? data.nLineThickness : 2,
+                    tension: data.nTension || undefined,
+                    borderWidth: type === 'bar' && hasPointColorOverrides && pointColorsMatch ? 0 : data.nLineThickness || 2,
                     pointRadius: data.nPointRadius ? data.nPointRadius : 3,
                     pointHoverRadius: data.nPointHoverRadius ? data.nPointHoverRadius : 4,
-                    pointBackgroundColor: data.sPointBackgroundColor ? data.sPointBackgroundColor : undefined,
-                    pointBorderColor: data.sSeriesColor,
+                    pointBackgroundColor: copyColors(backgroundColors),
+                    pointHoverBackgroundColor: copyColors(hoverBackgroundColors),
+                    pointBorderColor: copyColors(borderColors),
+                    pointHoverBorderColor: copyColors(hoverBorderColors),
                     pointBorderWidth: data.nPointBorderWidth ? data.nPointBorderWidth : 1
                 }
                 break;
@@ -123,7 +164,12 @@ class ChartjsChart extends ChartBase {
                 newData = {
                     label: data.sLabel,
                     data: data.dataPoints.map(item => item.y),
-                    tooltips: data.dataPoints.map(item => item.sTooltip)
+                    tooltips: data.dataPoints.map(item => item.sTooltip),
+                    backgroundColor: copyColors(backgroundColors),
+                    hoverBackgroundColor: copyColors(hoverBackgroundColors),
+                    borderColor: copyColors(borderColors),
+                    hoverBorderColor: copyColors(hoverBorderColors),
+                    borderWidth: hasPointColorOverrides && pointColorsMatch ? 0 : undefined
                 }
                 break;
             case "scatter":
@@ -134,8 +180,10 @@ class ChartjsChart extends ChartBase {
                     type: data.sType,
                     pointRadius: data.nPointRadius ? data.nPointRadius : 3,
                     pointHoverRadius: data.nPointHoverRadius ? data.nPointHoverRadius : 4,
-                    pointBackgroundColor: data.sPointBackgroundColor ? data.sPointBackgroundColor : undefined,
-                    pointBorderColor: data.sSeriesColor,
+                    pointBackgroundColor: copyColors(backgroundColors),
+                    pointHoverBackgroundColor: copyColors(hoverBackgroundColors),
+                    pointBorderColor: copyColors(borderColors),
+                    pointHoverBorderColor: copyColors(hoverBorderColors),
                     pointBorderWidth: data.nPointBorderWidth ? data.nPointBorderWidth : 1
                 }
                 for (let index = 0; index < this.xAxisLabels.length; index++) {
@@ -148,6 +196,10 @@ class ChartjsChart extends ChartBase {
         }
 
         newData.tooltips = data.dataPoints.map(item => item.sTooltip)
+        newData._pointColorDefaults = defaults;
+        newData._hasPointColorOverrides = hasPointColorOverrides;
+        newData._pointColorsMatch = pointColorsMatch;
+        newData._defaultBorderWidth = data.nLineThickness || 2;
 
         return newData;
     }
@@ -161,8 +213,42 @@ class ChartjsChart extends ChartBase {
 
     addNewDataPoint(datasetIndex, data) {
         //Add the data
-        this.chartData[datasetIndex].data.push(data.y);
-        this.chartData[datasetIndex].tooltips.push(data.sTooltip);
+        const dataset = this.chartData[datasetIndex];
+        dataset.data.push(data.y);
+        dataset.tooltips.push(data.sTooltip);
+
+        const pointIndex = dataset.data.length - 1;
+        const type = dataset.type || this.chartType;
+        const options = [
+            ['pointBackgroundColor', 'sBackgroundColor'],
+            ['pointHoverBackgroundColor', 'sHoverBackgroundColor'],
+            ['pointBorderColor', 'sBorderColor'],
+            ['pointHoverBorderColor', 'sHoverBorderColor']
+        ];
+        if (['bar', 'pie', 'doughnut', 'polarArea'].includes(type)) {
+            options.push(
+                ['backgroundColor', 'sBackgroundColor'],
+                ['hoverBackgroundColor', 'sHoverBackgroundColor'],
+                ['borderColor', 'sBorderColor'],
+                ['hoverBorderColor', 'sHoverBorderColor']
+            );
+        }
+        for (const [property, field] of options) {
+            const colors = dataset[property];
+            const fallback = dataset._pointColorDefaults[field];
+            if (Array.isArray(colors)) {
+                colors.push(data[field] || fallback);
+            } else if (data[field]) {
+                dataset[property] = Array(pointIndex).fill(colors || fallback).concat(data[field]);
+            }
+        }
+        const backgroundColor = data.sBackgroundColor || dataset._pointColorDefaults.sBackgroundColor;
+        const borderColor = data.sBorderColor || dataset._pointColorDefaults.sBorderColor;
+        dataset._hasPointColorOverrides ||= Boolean(data.sBackgroundColor || data.sBorderColor);
+        dataset._pointColorsMatch = dataset._pointColorsMatch && backgroundColor === borderColor;
+        if (['bar', 'pie', 'doughnut', 'polarArea'].includes(type)) {
+            dataset.borderWidth = dataset._hasPointColorOverrides && dataset._pointColorsMatch ? 0 : dataset._defaultBorderWidth;
+        }
 
         this.currentChart.update();
     }

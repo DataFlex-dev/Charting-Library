@@ -1,4 +1,4 @@
-import { ChartBase } from "../ChartBase/ChartBase.js";
+import { ChartBase, HoverBehavior, TooltipLocation } from "../ChartBase/ChartBase.js";
 const availableChartTypes = ['line', 'bar', 'column', 'area', 'pie', 'areaspline', 'scatter', 'spline'];
 
 class HighChartsChart extends ChartBase {
@@ -40,13 +40,18 @@ class HighChartsChart extends ChartBase {
                 },
                 //Define the yAxis
                 yAxis: {
+                    visible: this.showYAxis,
                     title: {
                         text: this.yAxisLabel
                     }
                 },
                 //Define the xAxis
                 xAxis: {
-                    categories: this.xAxisLabels
+                    visible: this.showXAxis,
+                    categories: this.xAxisLabels,
+                    labels: {
+                        autoRotation: [...new Set([this.xAxisLabelMinRotation, this.xAxisLabelMaxRotation])]
+                    }
                 },
                 //Information about the legend
                 legend: {
@@ -57,6 +62,8 @@ class HighChartsChart extends ChartBase {
                 },
 
                 tooltip: {
+                    shared: this.hoverBehavior === HoverBehavior.hbIndex,
+                    followPointer: this.tooltipLocation === TooltipLocation.tlNearest,
                     pointFormat: '{series.name}: <b>{point.y}</b><br/>{point.sTooltip}'
                 },
 
@@ -87,15 +94,50 @@ class HighChartsChart extends ChartBase {
     formatData(data) {
         //Modify the data for the specific library and charttype
         let newData;
+        const pointOptions = (item, extra = {}) => {
+            const color = item.sBackgroundColor || data.sPointBackgroundColor || data.sSeriesColor || undefined;
+            const borderColor = item.sBorderColor || data.sPointBorderColor || data.sSeriesColor || undefined;
+            const hoverColor = item.sHoverBackgroundColor || data.sPointHoverBackgroundColor || color;
+            const hoverBorderColor = item.sHoverBorderColor || data.sPointHoverBorderColor || borderColor;
+
+            return {
+                ...extra,
+                y: item.y,
+                sTooltip: item.sTooltip,
+                color,
+                borderColor,
+                borderWidth: data.nPointBorderWidth || 1,
+                marker: {
+                    radius: data.nPointRadius || 3,
+                    fillColor: color,
+                    lineColor: borderColor,
+                    lineWidth: data.nPointBorderWidth || 1,
+                    states: {
+                        hover: {
+                            radius: data.nPointHoverRadius || 4,
+                            fillColor: hoverColor,
+                            lineColor: hoverBorderColor,
+                            lineWidth: data.nPointBorderWidth || 1
+                        }
+                    }
+                },
+                states: {
+                    hover: {
+                        color: hoverColor,
+                        borderColor: hoverBorderColor
+                    }
+                }
+            };
+        };
 
         switch (this.chartType) {
             default:
                 newData = {
                     name: data.sLabel,
-                    data: data.dataPoints,
+                    data: data.dataPoints.map(item => pointOptions(item)),
                     color: data.sSeriesColor,
-                    type: data.sType,
-                    lineWidth: data.nLineThickness ? data.nLineThickness : 2
+                    type: data.nTension && (!data.sType || data.sType === 'line') ? 'spline' : data.sType,
+                    lineWidth: data.nLineThickness || 2
                 }
                 break;
             case "pie":
@@ -109,11 +151,9 @@ class HighChartsChart extends ChartBase {
                     innerSize: this.chartType == "doughnut" ? '50%' : '0%'
                 }
                 for (let index = 0; index < this.xAxisLabels.length; index++) {
-                    newData.data[index] = {
-                        name: this.xAxisLabels[index],
-                        y: data.dataPoints[index].y,
-                        sTooltip: data.dataPoints[index].sTooltip
-                    }
+                    newData.data[index] = pointOptions(data.dataPoints[index], {
+                        name: this.xAxisLabels[index]
+                    });
                 }
                 break;
             case "scatter":
@@ -123,16 +163,15 @@ class HighChartsChart extends ChartBase {
                     type: data.sType
                 }
                 for (let index = 0; index < this.xAxisLabels.length; index++) {
-                    newData.data[index] = [
-                        this.xAxisLabels[index],
-                        data.dataPoints[index].y,
-                        data.dataPoints[index].sTooltip
-                    ]
+                    newData.data[index] = pointOptions(data.dataPoints[index], {
+                        x: this.xAxisLabels[index],
+                    });
                 }
                 break;
 
         }
 
+        newData._pointOptions = pointOptions;
         return newData;
     }
 
@@ -142,7 +181,7 @@ class HighChartsChart extends ChartBase {
     }
 
     addNewDataPoint(datasetIndex, data) {
-        this.currentChart.series[datasetIndex].addPoint(data);
+        this.currentChart.series[datasetIndex].addPoint(this.chartData[datasetIndex]._pointOptions(data));
     }
 
     changeDataPoint(datasetIndex, valueIndex, newValue) {
