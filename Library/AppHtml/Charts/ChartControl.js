@@ -84,6 +84,13 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
         //Find the registered renderer matching psChartingLibrary
         const renderer = registeredRenderers.find(renderer => renderer.name.includes(this.psChartingLibrary));
         if (renderer) {
+            if (this.chartController instanceof renderer) {
+                this.chartController.syncFromControl(this);
+                this.chartController.drawChart();
+                return;
+            }
+
+            if (this.chartController) this.chartController.clearPreviousChart();
             this.set_isSvg(renderer.isSvg);
             this.chartController = new renderer(this);
         } else {
@@ -162,6 +169,8 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
 
     //Variable setter
     set_isSvg(bVal) {
+        if (this.isSvg === bVal) return;
+
         this.isSvg = bVal;
 
         //If the chart element already exists, replace it with a canvas/div if necesary

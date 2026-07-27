@@ -41,6 +41,7 @@ export class ChartBase {
             this.chartData[index] = this.formatData(this.chartData[index]);
         }
 
+        this.clearPreviousChart();
     }
 
     //Define a empty method that will be implemented in the subclasses

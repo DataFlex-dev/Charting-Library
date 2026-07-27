@@ -5,7 +5,6 @@ class ChartjsChart extends ChartBase {
 
     drawChart() {
         super.drawChart();
-        this.clearPreviousChart();
 
         //Explicitly set the height and width again to avoid resize issues when the user alt tabs while the page is loading
         this.chartLocation.height = this.control._eControl.clientHeight;

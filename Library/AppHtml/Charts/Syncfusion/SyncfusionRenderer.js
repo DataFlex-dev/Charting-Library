@@ -7,7 +7,6 @@ class SyncfusionChart extends ChartBase {
 
     drawChart() {
         super.drawChart();
-        this.clearPreviousChart();
 
         const that = this;
         const groupedHover = this.hoverBehavior === HoverBehavior.hbIndex && !['pie', 'doughnut'].includes(this.chartType);
