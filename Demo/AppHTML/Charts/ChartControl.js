@@ -198,16 +198,6 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
     }
 
     //Variable setter
-    set_psTitle(sVal) {
-        this.psTitle = sVal;
-    }
-
-    //Variable setter
-    set_psSubtitle(sVal) {
-        this.psSubtitle = sVal;
-    }
-
-    //Variable setter
     set_isSvg(bVal) {
         this.isSvg = bVal;
 
@@ -232,46 +222,8 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
     }
 
     //Variable setter
-    set_psChartType(sVal) {
-        this.psChartType = sVal;
-    }
-    
-    //Variable setter
     set_psXAxisLabels(sVal) {
         this.psXAxisLabels = sVal.split(', ');
-    }
-
-    //Variable setter
-    set_psYAxisLabel(sVal) {
-        this.psYAxisLabel = sVal;
-    }
-
-    set_pbShowXAxis(bVal) {
-        this.pbShowXAxis = bVal;
-    }
-
-    set_pbShowYAxis(bVal) {
-        this.pbShowYAxis = bVal;
-    }
-
-    //Variable setter
-    set_psLegendAlignment(sVal) {
-        this.psLegendAlignment = sVal;
-    }
-
-    //Variable setter
-    set_pbLegendEnabled(bVal) {
-        this.pbLegendEnabled = bVal;
-    }
-
-    //VariableSetter
-    set_psChartBackgroundColor(sVal) {
-        this.psChartBackgroundColor = sVal;
-    }
-
-    //Variable setter
-    set_pbZoomable(bVal) {
-        this.pbZoomable = bVal;
     }
 
     registerRenderer(renderer, svgBased) {
