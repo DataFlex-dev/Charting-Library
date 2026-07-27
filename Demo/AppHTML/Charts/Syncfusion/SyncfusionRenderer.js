@@ -49,7 +49,7 @@ class SyncfusionChart extends ChartBase {
         }
 
         //Populate the chart with info
-        this.currentChart.series = this.chartData;
+        this.currentChart.series = [...this.chartData];
         this.currentChart.highlightMode = groupedHover ? 'Cluster' : 'Point';
         const hoverColors = this.chartData.flatMap(series => series.dataSource.map(point => point.hoverColor)).filter(Boolean);
         if (hoverColors.length && hoverColors.every(color => color === hoverColors[0])) {
@@ -212,6 +212,7 @@ class SyncfusionChart extends ChartBase {
 
     removeDataset(datasetIndex) {
         //Remove the series from the chart and refresh
+        super.removeDataset(datasetIndex);
         this.currentChart.removeSeries(datasetIndex);
         this.currentChart.refresh();
     }

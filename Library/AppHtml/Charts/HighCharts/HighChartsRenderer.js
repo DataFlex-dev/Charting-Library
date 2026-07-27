@@ -187,6 +187,7 @@ class HighChartsChart extends ChartBase {
     }
 
     removeDataset(datasetIndex) {
+        super.removeDataset(datasetIndex);
         this.currentChart.series[datasetIndex].remove();
     }
 

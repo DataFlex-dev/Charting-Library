@@ -19,7 +19,7 @@ class ChartjsChart extends ChartBase {
                 type: this.chartType,
                 data: {
                     labels: this.xAxisLabels,
-                    datasets: this.chartData
+                    datasets: [...this.chartData]
                 },
                 options: {
                     plugins: {
@@ -260,6 +260,7 @@ class ChartjsChart extends ChartBase {
     }
 
     removeDataset(datasetIndex) {
+        super.removeDataset(datasetIndex);
         this.currentChart.data.datasets.splice(datasetIndex, 1);
         this.currentChart.update();
     }

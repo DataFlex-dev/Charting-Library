@@ -61,6 +61,7 @@ export class ChartBase {
     //Allows for new series to be added to the chart
     addNewSeries(data) {
         data = this.formatData(data);
+        this.chartData.push(data);
 
         return data;
     }
@@ -73,8 +74,8 @@ export class ChartBase {
     changeDataPoint(datasetIndex, valueIndex, newValue) {
     }
 
-    //Implement in subclasses
     removeDataset(datasetIndex) {
+        this.chartData.splice(datasetIndex, 1);
     }
 
     //Handles the onClick event
