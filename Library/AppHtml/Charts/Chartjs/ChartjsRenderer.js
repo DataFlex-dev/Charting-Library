@@ -253,9 +253,12 @@ class ChartjsChart extends ChartBase {
     }
 
     changeDataPoint(datasetIndex, valueIndex, newValue) {
-        this.chartData[datasetIndex].data[valueIndex]?.y
-            ? this.chartData[datasetIndex].data[valueIndex].y = newValue
-            : this.chartData[datasetIndex].data[valueIndex] = newValue;
+        const point = this.chartData[datasetIndex].data[valueIndex];
+        if (point !== null && typeof point === 'object') {
+            point.y = newValue;
+        } else {
+            this.chartData[datasetIndex].data[valueIndex] = newValue;
+        }
         this.currentChart.update();
     }
 
