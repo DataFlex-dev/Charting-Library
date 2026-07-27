@@ -268,5 +268,5 @@ class ChartjsChart extends ChartBase {
 
 //Register at chartcontrol
 window.addEventListener('load', function (event) {
-    df.ChartControl.prototype.registerRenderer(ChartjsChart, false);
+    df.ChartControl.prototype.registerRenderer("Chartjs", ChartjsChart, false);
 })

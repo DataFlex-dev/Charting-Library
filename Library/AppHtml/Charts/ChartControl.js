@@ -1,4 +1,4 @@
-let registeredRenderers = [];
+const registeredRenderers = new Map();
 
 df.ChartControl = class ChartControl extends df.WebBaseControl {
     constructor(sName, oPrnt) {
@@ -79,11 +79,12 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
         }
 
         //If there are no registered renderers throw an error
-        if (registeredRenderers.length === 0) throw new df.Error(999, 'No charting libraries found, check your index.html if you included all files properly!');
+        if (registeredRenderers.size === 0) throw new df.Error(999, 'No charting libraries found, check your index.html if you included all files properly!');
 
         //Find the registered renderer matching psChartingLibrary
-        const renderer = registeredRenderers.find(renderer => renderer.name.includes(this.psChartingLibrary));
-        if (renderer) {
+        const registration = registeredRenderers.get(this.psChartingLibrary);
+        if (registration) {
+            const { renderer, isSvg } = registration;
             if (this.chartController instanceof renderer) {
                 this.chartController.syncFromControl(this);
                 this.chartController.drawChart();
@@ -91,7 +92,7 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
             }
 
             if (this.chartController) this.chartController.clearPreviousChart();
-            this.set_isSvg(renderer.isSvg);
+            this.set_isSvg(isSvg);
             this.chartController = new renderer(this);
         } else {
             //If the charting library cannot be found in the list throw an error
@@ -198,9 +199,8 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
         this._aXAxisLabels = sVal.split(', ');
     }
 
-    registerRenderer(renderer, svgBased) {
-        renderer.isSvg = svgBased;
-        registeredRenderers.push(renderer);
+    registerRenderer(name, renderer, isSvg) {
+        registeredRenderers.set(name, { renderer, isSvg });
     }
 
     //Call a full refresh of the chart in order to update stuff such as the title.

@@ -194,5 +194,5 @@ class HighChartsChart extends ChartBase {
 
 //Register at chartcontrol
 window.addEventListener('load', function (event) {
-    df.ChartControl.prototype.registerRenderer(HighChartsChart, true);
+    df.ChartControl.prototype.registerRenderer("HighCharts", HighChartsChart, true);
 })

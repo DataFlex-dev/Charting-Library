@@ -219,5 +219,5 @@ class SyncfusionChart extends ChartBase {
 
 //Register at chartcontrol
 window.addEventListener('load', function (event) {
-    df.ChartControl.prototype.registerRenderer(SyncfusionChart, true);
+    df.ChartControl.prototype.registerRenderer("Syncfusion", SyncfusionChart, true);
 })
