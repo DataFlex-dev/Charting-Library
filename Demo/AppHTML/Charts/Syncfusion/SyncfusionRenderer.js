@@ -80,7 +80,7 @@ class SyncfusionChart extends ChartBase {
         //Handle the pointClick event in syncfusion, in case that the charttype is pie or doughnut read different values
         this.currentChart.pointClick = (event) => {
 
-            if (this.chartType !== "pie" && "doughnut") {
+            if (!["pie", "doughnut"].includes(this.chartType)) {
                 this.onClick(event.point.x, event.point.y, event.point.tooltip ?? '', event.point.index, event.point.series.name);
             } else {
                 this.onClick(event.point.x, event.point.y, event.point.tooltip ?? '', event.point.index, event.series.properties.name);
