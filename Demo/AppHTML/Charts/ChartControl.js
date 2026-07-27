@@ -201,27 +201,7 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
 
         if (!(this.psXAxisLabels instanceof Array)) this.set_psXAxisLabels(this.psXAxisLabels);
 
-        //Send a copy of the array. Because arrays are passed by reference this would mess with the chartData stored in the control itself
-        Object.assign(this.chartController, {
-            chartLocation: this._eChart,
-            title: this.psTitle,
-            backgroundColor: this.psChartBackgroundColor,
-            chartData: [...this.chartData],
-            subtitle: this.psSubtitle,
-            chartType: this.psChartType,
-            xAxisLabels: this.psXAxisLabels,
-            xAxisLabelMinRotation: this.piXAxisLabelMinRotation,
-            xAxisLabelMaxRotation: this.piXAxisLabelMaxRotation,
-            yAxisLabel: this.psYAxisLabel,
-            showXAxis: this.pbShowXAxis,
-            showYAxis: this.pbShowYAxis,
-            legendAlignment: this.psLegendAlignment,
-            legendEnabled: this.pbLegendEnabled,
-            zoomable: this.pbZoomable,
-            hoverBehavior: this.peHoverBehavior,
-            tooltipLocation: this.peTooltipLocation
-        })
-
+        this.chartController.syncFromControl(this);
         this.chartController.drawChart();
     }
 }

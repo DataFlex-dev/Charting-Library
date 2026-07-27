@@ -4,28 +4,33 @@ export const TooltipLocation = Object.freeze({ tlNearest: 0, tlAverage: 1 });
 export class ChartBase {
 
     constructor(control) {
-        this.control = control;
-        this.chartLocation = control._eChart;
-        this.title = control.psTitle;
-        this.subtitle = control.psSubtitle;
-        this.backgroundColor = control.psChartBackgroundColor;
-        this.chartData = [...control.chartData];
-        this.chartType = control.psChartType;
-        this.xAxisLabels = control.psXAxisLabels;
-        this.xAxisLabelMinRotation = control.piXAxisLabelMinRotation;
-        this.xAxisLabelMaxRotation = control.piXAxisLabelMaxRotation;
-        this.yAxisLabel = control.psYAxisLabel;
-        this.showXAxis = control.pbShowXAxis;
-        this.showYAxis = control.pbShowYAxis;
-        this.legendAlignment = control.psLegendAlignment;
-        this.legendEnabled = control.pbLegendEnabled;
-        this.zoomable = control.pbZoomable
-        this.hoverBehavior = control.peHoverBehavior;
-        this.tooltipLocation = control.peTooltipLocation;
-
+        this.syncFromControl(control);
         this.currentChart = null;
 
         this.drawChart();
+    }
+
+    syncFromControl(control) {
+        Object.assign(this, {
+            control,
+            chartLocation: control._eChart,
+            title: control.psTitle,
+            subtitle: control.psSubtitle,
+            backgroundColor: control.psChartBackgroundColor,
+            chartData: [...control.chartData],
+            chartType: control.psChartType,
+            xAxisLabels: control.psXAxisLabels,
+            xAxisLabelMinRotation: control.piXAxisLabelMinRotation,
+            xAxisLabelMaxRotation: control.piXAxisLabelMaxRotation,
+            yAxisLabel: control.psYAxisLabel,
+            showXAxis: control.pbShowXAxis,
+            showYAxis: control.pbShowYAxis,
+            legendAlignment: control.psLegendAlignment,
+            legendEnabled: control.pbLegendEnabled,
+            zoomable: control.pbZoomable,
+            hoverBehavior: control.peHoverBehavior,
+            tooltipLocation: control.peTooltipLocation
+        });
     }
 
     //Handles the drawing of the chart
