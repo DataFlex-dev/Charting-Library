@@ -292,7 +292,6 @@ df.ChartControl = class ChartControl extends df.WebBaseControl {
             chartData: [...this.chartData],
             subtitle: this.psSubtitle,
             chartType: this.psChartType,
-            library: this.psChartingLibrary,
             xAxisLabels: this.psXAxisLabels,
             xAxisLabelMinRotation: this.piXAxisLabelMinRotation,
             xAxisLabelMaxRotation: this.piXAxisLabelMaxRotation,
