@@ -20,7 +20,7 @@
             "AppHtml/Charts/Chartjs/LICENSE.txt"
         ],
         "license": "BSD-3-Clause",
-        "version": "1.0.0"
+        "version": "1.0.1"
     },
     "paths": {
         "fileList": "DummyFilelist.cfg"
